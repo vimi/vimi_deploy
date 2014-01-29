@@ -1,0 +1,7 @@
+core = "7.x"
+description = "Deploy module for VIMI"
+name = "VIMI Deploy"
+package = "VIMI"
+project = "vimi_deploy"
+version = "7.x-0.1"
+

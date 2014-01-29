@@ -1,0 +1,133 @@
+<?php
+/**
+ * @file
+ */
+
+/**
+ * Implements hook_install().
+ *
+ * See http://dcycleproject.org/node/43
+ */
+function vimi_deploy_install() {
+  for ($i = 7001; $i < 8000; $i++) {
+    $candidate = 'vimi_deploy_update_' . $i;
+    if (function_exists($candidate)) {
+      $candidate();
+    }
+  }
+}
+
+/**
+ * Setting the theme.
+ */
+function vimi_deploy_update_7000() {
+  // Setting for date api.
+  variable_set('configurable_timezones', 0);
+  variable_set('date_first_day', 1);
+  variable_set('date_default_timezone', 'Europe/Copenhagen');
+
+  $theme = 'plate';
+  $admin_theme = 'seven';
+
+  // Enable standard theme.
+  db_update('system')
+    ->fields(array('status' => 1))
+    ->condition('type', 'theme')
+    ->condition('name', $theme)
+    ->execute();
+
+  // Disable bartik.
+  db_update('system')
+    ->fields(array('status' => 0))
+    ->condition('type', 'theme')
+    ->condition('name', 'responsive_bartik')
+    ->execute();
+
+  variable_set('theme_default', $theme);
+
+  // Enable the admin theme.
+  db_update('system')
+    ->fields(array('status' => 1))
+    ->condition('type', 'theme')
+    ->condition('name', $admin_theme)
+    ->execute();
+  variable_set('admin_theme', $admin_theme);
+  variable_set('node_admin_theme', '1');
+}
+
+/**
+ * Granting permissions for the editor.
+ */
+function vimi_deploy_update_7001() {
+  $role = user_role_load_by_name('editor');
+  user_role_grant_permissions($role->rid, array('view the administration theme', 'save draft', 'create files', 'create url aliases'));
+}
+
+/**
+ * Disable unneeded modules.
+ */
+function vimi_deploy_update_7002() {
+  module_disable(array('apps'));
+  drupal_uninstall_modules(array('apps'));
+  
+  module_disable(array('panopoly_news_demo'));
+  drupal_uninstall_modules(array('panopoly_news_demo'));
+}
+
+/**
+ * Enable Panopoly News.
+ */
+function vimi_deploy_update_7003() {
+  module_enable(array('panopoly_news'));
+
+  $administrator = user_role_load_by_name('administrator');
+  $editor = user_role_load_by_name('editor');
+
+  user_role_grant_permissions($administrator->rid, array('create panopoly_news_article content', 'edit own panopoly_news_article content', 'edit any panopoly_news_article content', 'delete own panopoly_news_article content', 'delete any panopoly_news_article content'));
+
+  user_role_grant_permissions($editor->rid, array('create panopoly_news_article content', 'edit own panopoly_news_article content', 'edit any panopoly_news_article content', 'delete own panopoly_news_article content', 'delete any panopoly_news_article content'));
+
+  user_role_grant_permissions($administrator->rid, array('administer panelizer node panopoly_news_article defaults', 'administer panelizer node panopoly_news_article overview', 'administer panelizer node panopoly_news_article settings', 'administer panelizer node panopoly_news_article context', 'administer panelizer node panopoly_news_article layout', 'administer panelizer node panopoly_news_article content'));
+
+  user_role_grant_permissions($editor->rid, array('administer panelizer node panopoly_news_article defaults', 'administer panelizer node panopoly_news_article overview', 'administer panelizer node panopoly_news_article settings', 'administer panelizer node panopoly_news_article layout', 'administer panelizer node panopoly_news_article content'));
+}
+
+/**
+ * Revoke breadcrumb permissions for the editor
+ */
+function vimi_deploy_update_7004() {
+  $editor = user_role_load_by_name('editor');
+
+  user_role_revoke_permissions($editor->rid, array('administer panelizer taxonomy_term panopoly_categories breadcrumbs', 'administer panelizer node panopoly_page breadcrumbs'));
+}
+
+/**
+ * Enable other necessary modules.
+ */
+function vimi_deploy_update_7005() {
+  module_enable(array('google_analytics'));
+  module_enable(array('metatag', 'metatag_panels'));
+  module_enable(array('mailchimp', 'mailchimp_lists'));
+  module_enable(array('webform', 'webform_mailchimp', 'select_or_other', 'addressfield_tokens'));
+  module_enable(array('media_wysiwyg', 'media_wysiwyg_view_mode'));
+}
+
+/**
+ * File entity settings.
+ */
+function vimi_deploy_update_7006() {
+  variable_set('file_entity_max_filesize', '5 MB');
+  variable_set('file_entity_file_upload_wizard_skip_scheme', 1);
+}
+
+/**
+ * Settings for transliteration.
+ */
+function vimi_deploy_update_7007() {
+  if (module_exists('pathauto')) {
+    if (module_exists('transliteration)) {
+      variable_set('pathauto_transliterate', 1);
+    }
+    variable_set('pathauto_reduce_ascii', 1);
+  }
+}
