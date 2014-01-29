@@ -110,6 +110,7 @@ function vimi_deploy_update_7005() {
   module_enable(array('mailchimp', 'mailchimp_lists'));
   module_enable(array('webform', 'webform_mailchimp', 'select_or_other', 'addressfield_tokens'));
   module_enable(array('media_wysiwyg', 'media_wysiwyg_view_mode'));
+  module_enable(array('vih_viggo', 'vih_calendar'));
 }
 
 /**
@@ -130,4 +131,15 @@ function vimi_deploy_update_7007() {
     }
     variable_set('pathauto_reduce_ascii', 1);
   }
+}
+
+/**
+ * Adding permissions for metatag.
+ */
+function vimi_deploy_update_7008() {
+  $editor = user_role_load_by_name('editor');
+
+  user_role_grant_permissions($editor->rid, array('edit meta tags'));
+  user_role_grant_permissions($editor->rid, array('create webform content', 'edit own webform content', 'edit any webform content', 'delete own webform content', 'delete any webform content'));
+  user_role_grant_permissions($editor->rid, array('create vih_calendar content', 'edit own vih_calendar content', 'edit any vih_calendar content', 'delete own vih_calendar content', 'delete any vih_calendar content'));
 }
